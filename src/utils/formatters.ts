@@ -27,11 +27,12 @@ export const formatDate = (timestamp: number): string => {
 
 /**
  * Validate Nexus address format
+ * Nexus addresses use base58 encoding which excludes 0, O, I, l
  */
 export const isValidAddress = (address: string): boolean => {
-  // Basic validation - Nexus addresses are base58 encoded
-  // More strict validation could be added
-  return address.length > 30 && /^[A-Za-z0-9]+$/.test(address);
+  // Base58 character set (excluding 0, O, I, l)
+  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/;
+  return address.length > 30 && base58Regex.test(address);
 };
 
 /**

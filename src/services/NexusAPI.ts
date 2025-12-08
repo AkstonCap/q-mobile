@@ -30,13 +30,13 @@ class NexusAPI {
   private axiosInstance: AxiosInstance;
 
   constructor(nodeUrl: string = 'http://localhost:8080') {
-    this.nodeUrl = '';
     this.axiosInstance = axios.create({
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
       },
     });
+    this.nodeUrl = nodeUrl;
     this.validateAndSetNodeUrl(nodeUrl);
   }
 

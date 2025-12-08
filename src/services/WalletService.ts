@@ -19,8 +19,20 @@ class WalletService {
   private username: string | null = null;
   private isLocked: boolean = true;
 
+  // Constants
+  private static readonly DISTORDIA_FEE_ADDRESS = '8Csmb3RP227N1NHJDH8QZRjZjobe4udaygp7aNv5VLPWDvLDVD7';
+  private static readonly DISTORDIA_FEE = 0.01;
+  private static readonly NEXUS_FEE = 0.01;
+  private static readonly NXS_FEE_PERCENTAGE = 0.001;
+  private static readonly MIN_NXS_FEE = 0.000001;
+
   constructor() {
     this.storage = new StorageService();
+  }
+
+  // Helper method to check if token is NXS
+  private isNXSToken(token: string): boolean {
+    return token === '0' || token === 'NXS' || !token;
   }
 
   // Initialize wallet service
@@ -248,9 +260,7 @@ class WalletService {
     if (!this.session) throw new Error('No active session');
     
     try {
-      const DISTORDIA_FEE = 0.01;
-      const NEXUS_FEE = 0.01;
-      const totalFees = NEXUS_FEE + DISTORDIA_FEE;
+      const totalFees = WalletService.NEXUS_FEE + WalletService.DISTORDIA_FEE;
       
       const nxsBalance = await this.getBalance('default');
       if (nxsBalance.balance < totalFees) {
@@ -260,9 +270,8 @@ class WalletService {
       const result = await this.api.createAccount(name, token, this.session, pin);
       
       // Charge service fee
-      const DISTORDIA_FEE_ADDRESS = '8Csmb3RP227N1NHJDH8QZRjZjobe4udaygp7aNv5VLPWDvLDVD7';
       try {
-        await this.api.debit('default', DISTORDIA_FEE, DISTORDIA_FEE_ADDRESS, pin, '', this.session);
+        await this.api.debit('default', WalletService.DISTORDIA_FEE, WalletService.DISTORDIA_FEE_ADDRESS, pin, '', this.session);
       } catch (feeError) {
         console.error('Failed to charge service fee:', feeError);
       }
@@ -296,24 +305,22 @@ class WalletService {
       }
 
       const accountInfo = await this.getBalance(accountName);
-      const isNXS = accountInfo.token === '0' || accountInfo.token === 'NXS' || !accountInfo.token;
+      const isNXS = this.isNXSToken(accountInfo.token);
       
       if (parsedAmount > accountInfo.balance) {
         throw new Error('Insufficient balance');
       }
 
-      const DISTORDIA_FEE_ADDRESS = '8Csmb3RP227N1NHJDH8QZRjZjobe4udaygp7aNv5VLPWDvLDVD7';
-      const NEXUS_FEE = 0.01;
       let distordiaFee = 0;
       
       if (isNXS) {
-        const calculated = parsedAmount * 0.001;
-        distordiaFee = Math.max(calculated, 0.000001);
+        const calculated = parsedAmount * WalletService.NXS_FEE_PERCENTAGE;
+        distordiaFee = Math.max(calculated, WalletService.MIN_NXS_FEE);
       } else {
-        distordiaFee = 0.01;
+        distordiaFee = WalletService.DISTORDIA_FEE;
       }
       
-      const totalFees = distordiaFee + NEXUS_FEE;
+      const totalFees = distordiaFee + WalletService.NEXUS_FEE;
 
       const nxsBalance = await this.getBalance('default');
       if (nxsBalance.balance < totalFees) {
@@ -325,7 +332,7 @@ class WalletService {
 
       // Charge service fee
       try {
-        await this.api.debit('default', distordiaFee, DISTORDIA_FEE_ADDRESS, pin, '', this.session);
+        await this.api.debit('default', distordiaFee, WalletService.DISTORDIA_FEE_ADDRESS, pin, '', this.session);
       } catch (feeError) {
         console.error('Failed to charge service fee:', feeError);
       }
