@@ -78,8 +78,8 @@ Before using the wallet, you need a Nexus node running. You can:
 ```
 
 **Option B: Connect to a Remote Node**
-- Use a public Nexus node or hosted service like api.distordia.com
-- Configure the node URL in wallet settings (api.distordia.com is the default)
+- Use a remote hosted Nexus node of your choice (like api.distordia.com), requires https connection.
+- Configure the node URL in wallet settings (https://api.distordia.com is the default)
 
 ### 2. Login to Your Wallet
 
